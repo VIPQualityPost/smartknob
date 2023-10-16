@@ -25,14 +25,14 @@ Features:
  - 240x240 round LCD ("GC9A01"), protected by 39.5mm watch glass on rotor
  - BLDC gimbal motor, with a hollow shaft for mechanically & electrically connecting the LCD
  - Powered by ESP32-PICO-V3-02 (Lilygo TMicro32 Plus module)
- - PCB flexure and strain gauges used for press detection (haptic feedback provided via the motor)
+ - PCB flexure and SMD resistors used as strain gauges for press detection (haptic feedback provided via the motor)
  - 8 side-firing RGB LEDs (SK6812-SIDE-A) illuminate ring around the knob
  - USB-C (2.0) connector for 5V power and serial data/programming (CH340)
  - VEML7700 ambient light sensor for automatic backlight & LED intensity adjustment
  - Versatile back plate for mounting - use either 4x screws, or 2x 3M medium Command strips (with cutouts for accessing removal tabs after installation)
  - Front cover snaps on for easy access to the PCB
 
-**Current status:** Not recommended for general use (mechanical and electrical revisions may be needed depending on motor/electronics availability)
+**Current status:** Not recommended for general use, but may be a fun project for an advanced electronics hobbyist.
 
 ### Demo video
 
@@ -61,23 +61,28 @@ View the latest auto-generated (untested) [Base PCB Interactive BOM](https://sma
 
 A few miscellaneous notes in the meantime:
 
- - This can _probably_ be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish
- - If you wanted a simpler build, you could omit the LCD and just merge the knob + glass from the model into a single STL to get a closed-top knob
  - There's limited space inside the LCD mount for wiring, and 8 wires need to fit through the hole in the center. I used 30 AWG wire-wrapping wire. Enamel-coated wire would probably work too.
- - Strain gauges are BF350-3AA, and glued in place with CA glue (I'll include video of this process in the future, but essentially I used kapton tape to pick up the strain gauge and hold it in place during curing). This has to be done after reflow soldering, and would be hard to remove/fix in case of a mistake, so MAKE SURE TO PRACTICE GLUING strain gauges to other items before attempting on the PCB!
+ - Older versions of the design (as seen in the videos) used glued-on BF350-3AA strain gauges to detect presses; in v0.5 these were replaced with footprints for SMD resistors, which exhibit similar properties when stretched/compressed and are much easier to assemble. 
  - The TMC6300 is _tiny_ and has a bottom pad, so I would seriously consider getting a stencil along with the PCB order. Even with the stencil I needed to manually clean up some bridging afterward; I _highly_ recommend Chip Quik NC191 gel flux, available on [Amazon](https://amzn.to/3MGDSr5) (or use this [non-affiliate link](https://www.amazon.com/Smooth-Flow-No-Clean-syringe-plunger/dp/B08KJPG3NZ) instead) or from your electronics distributor of choice. Flux is also very helpful when soldering the LCD ribbon cable to to screen PCB.
- - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) is awesome and way easier to work with than the bare chip if you just want to play around with low current BLDC motors
+ - For breadboard prototyping, the [TMC6300-BOB](https://www.trinamic.com/support/eval-kits/details/tmc6300-bob/) or SparkFun's [TMC6300 driver board](https://www.sparkfun.com/products/21867) are awesome and way easier to work with than the bare chip if you just want to play around with low current BLDC motors
  - For AliExpress purchases: I highly recommend **only** using AliExpress Standard Shipping (purchasing in the US). I have had multiple purchases take months or never get delivered when purchased with Cainiao or other low cost shipping options, whereas AliExpress Standard is very reliable and generally faster in my experience.
- - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly. I would not recommend ordering these parts yourself until the [stable release v1.0 milestone](https://github.com/scottbez1/smartknob/milestone/1) is complete, as there are some mechanical interference issues in the current revision.
+ - Make sure to check the [open issues](https://github.com/scottbez1/smartknob/issues) - this design is not yet "stable", so beware that everything may not go smoothly.
 
 Future plans:
- - consider switch to using an ESP32-S3-MINI-1 module (once Arduino core support is complete), as that would allow for direct USB HID support (for joystick/macro-pad type input to a computer)
- - Bluetooth HID support?
+ - consider switch to using an ESP32-S3-MINI-1 module
  - get wifi configured and working (probably MQTT?). Currently memory is an issue with the full display framebuffer sprite. PSRAM might fix this (requires newer ESP-IDF & unreleased Arduino core, and from a brief test I got horrible performance with PSRAM enabled), or the next item might help reduce memory:
  - migrate to LVGL, for better display rendering and easy support for menus, etc. Shouldn't require a full 240x240x24b framebuffer in memory, freeing some for wifi, etc.
  - Home Assistant integration, or other real-world applications
  - ???
  - [Profit](https://github.com/sponsors/scottbez1/) 😉
+
+ #### Already built one?
+Check out the [firmware/software documentation](https://paper.dropbox.com/doc/SmartKnob-firmware-and-software--B_oWj~L1dXqHgAqqYmhwwuqzAg-VUb9nq7btuhnHw5KlgJIH)
+for tips on getting it programmed and hooking it up to your own software integrations.
+
+If you've already uploaded the standard firmware and gone through the calibration process (see guide linked above if you don't know what this means),
+go to https://scottbez1.github.io/smartknob/ to try out an interactive web-based demo that uses Web Serial to talk to a SmartKnob that's plugged into your
+computer's USB port!
 
 
 #### Base PCB
@@ -118,7 +123,7 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
     <img src="https://smartknob-artifacts.s3.us-west-1.amazonaws.com/master/electronics/view_screen-back-3d.png" width="300" />
 </a>
 
-Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design.
+Ordering notes: Must be 1.2mm thick (not "standard" 1.6mm) per mechanical design. (The PCB silkscreen mentions 0.6mm thickness - this is the thickness of the **VHB tape** for adhering the LCD; the PCB should be 1.2mm thick)
 
 There are few enough components on the Screen PCB that I chose to hand-solder them rather than reflow with solder paste
 and a stencil, but if you order a stencil, see the note above about selecting a "Customized size" to be easier to
@@ -137,22 +142,62 @@ Latest auto-generated (untested and likely broken!) artifacts⚠️:
 
 ⚠️ For tested/stable/recommended artifacts, use a [release](https://github.com/scottbez1/smartknob/releases) instead.
 
+#### Printed parts
+You will need six printed parts. The current stable designs can be found as STL assets in the [v185 mechanical release](https://github.com/scottbez1/smartknob/releases/tag/releases%2Fmechanical%2Fv185-dummy-tag) or you can export the latest untested designs from the CAD model by opening it in Fusion 360: https://a360.co/3BzkU0n
 
-## SmartKnob Mini
-Planned for the future.
+The parts can _probably_ be FDM 3D printed with a well-tuned printer, but the parts shown in videos/photos were MJF printed in nylon for tight tolerances and better surface finish. 
 
+If you wanted a simpler build, you could omit the LCD and just merge the knob + glass from the model into a single STL to get a closed-top knob.
+
+Export and print the following 6 parts:
+* `Enclosure`
+* `Knob` (RotorAssembly->KnobAssembly->Knob)
+* `ScreenPlatform`
+* `RotorSpacer` (RotorAssembly->RotorSpacer)
+* `MountBase`
+* `BackPlate`
+
+⚠️ If you opt to go for MJF Nylon printing from JLCPCB, their system may complain about `< 0.8mm wall thickness detected` on the `MountBase`, `ScreenPlatform` and `RotorSpacer` parts. This appears to be a false positive, possibly on some of the print tapers. You should be able to ignore this, as all print orders at JLCPCB are subject to a final manual review, and they will contact you by email if there are any job-stopping issues or risks with your prints.
+
+## NanoFOC (3rd party)
+If you're looking to tinker with FOC/haptic feedback, but don't want to build a full SmartKnob View yourself, I can
+recommend the NanoFOC DevKit++, an [open-source design](https://github.com/katbinaris/nanofoc_devkit) made and
+[sold](https://store.binaris.io/products/nanofoc-devkit) by a member of the SmartKnob community! It's super compact
+and is a great testbed or core for building your own BLDC-based haptic input device.
+
+![Image of the NanoFOC PCB](https://cdn.shopify.com/s/files/1/0729/7433/6335/products/IMG_20230418_120554-01.jpg?width=416)
+
+
+The NanoFOC uses an ESP32-S3, and the SmartKnob firmware works on it out of the box; just select the `nanofoc`
+environment in PlatformIO rather than the `view` environment when uploading.
 
 # Frequently Asked Questions (FAQ)
 
-**How much does it cost?**
+### Can I use this cheap gimbal BLDC motor I found on AliExpress?
+
+I can't stop you, but I will caution that **you probably won't be super happy with it** depending on your intended application.
+
+Nearly every off-the-shelf BLDC gimbal motor that the community has tested (which is pretty much ALL the cheap ones you'll find on AliExpress, trust me) has
+_moderate to severge cogging_. That means the motor wants to snap to certain positions by itself even when unpowered. This means you won't be able to get
+completely smooth rotation when virtual detents are turned off, and the motor's cogging may interfere with or overpower the virtual detents, particularly if
+you set them to lower strength or make then very fine-grained.
+
+The recommended motor is definitely the best (i.e. lowest cogging) off-the-shelf motor we've come across so far, and is the only readily-available motor
+that I would consider "good" for this application.
+
+If you've found another motor that is completely smooth when unpowered, we'd LOVE to hear about it in the discord; if you're wondering about some cheap motor
+you saw online, either just order one and try it for yourself, or ask about it in discord but don't be surprised (or offended) if the response you get is
+something terse like "nope, no good".
+
+### How much does it cost?
 
 I wish I could tell you now, but I don't actually know off the top of my head. Check back soon - I've only built a few so far, which was the result of a bunch of tinkering and prototyping over an extended period, so I don't have all the expenses tallied up yet. Probably less than $200 in parts? But some items have gotten more expensive, and you may be limited by minimum order quantities or shipping charges from multiple separate suppliers.
 
-**Does it work with XYZ?**
+### Does it work with XYZ?
 
 Not yet, regardless of whatever "XYZ" you're thinking of. So far I've only implemented enough firmware for the demo shown in the video, so you can't actually use it for anything productive yet. The basic detent configuration API is there, but not much else. Lots of firmware work remains to be done. If you build one, I'd love your help adding support for "XYZ" though!
 
-**Can I buy one as a kit or already assembled?**
+### Can I buy one as a kit or already assembled?
 
 Probably not? Or at least, I don't have any immediate plans to sell them myself. It's not that I don't want you to be happy, but hardware is a hard business and I just work on this stuff in my free time.
 

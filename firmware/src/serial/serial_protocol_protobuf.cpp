@@ -2,7 +2,7 @@
 
 #include "../proto_gen/smartknob.pb.h"
 
-#include "../proto_helpers.h"
+#include "proto_helpers.h"
 
 #include "crc32.h"
 #include "pb_encode.h"
@@ -14,10 +14,10 @@ static SerialProtocolProtobuf* singleton_for_packet_serial = 0;
 static const uint16_t MIN_STATE_INTERVAL_MILLIS = 5;
 static const uint16_t PERIODIC_STATE_INTERVAL_MILLIS = 5000;
 
-SerialProtocolProtobuf::SerialProtocolProtobuf(Stream& stream, MotorTask& motor_task) :
+SerialProtocolProtobuf::SerialProtocolProtobuf(Stream& stream, ConfigCallback config_callback) :
         SerialProtocol(),
         stream_(stream),
-        motor_task_(motor_task),
+        config_callback_(config_callback),
         packet_serial_() {
     packet_serial_.setStream(&stream);
 
@@ -105,6 +105,13 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
         return;
     }
 
+    if (pb_rx_buffer_.protocol_version != PROTOBUF_PROTOCOL_VERSION) {
+        char buf[200];
+        snprintf(buf, sizeof(buf), "Invalid protocol version. Expected %u, received %u", PROTOBUF_PROTOCOL_VERSION, pb_rx_buffer_.protocol_version);
+        log(buf);
+        return;
+    }
+
     // Always ACK immediately
     ack(pb_rx_buffer_.nonce);
     if (pb_rx_buffer_.nonce == last_nonce_) {
@@ -118,7 +125,7 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
     
     switch (pb_rx_buffer_.which_payload) {
         case PB_ToSmartknob_smartknob_config_tag: {
-            motor_task_.setConfig(pb_rx_buffer_.payload.smartknob_config);
+            config_callback_(pb_rx_buffer_.payload.smartknob_config);
             break;
         }
         default: {
@@ -133,6 +140,7 @@ void SerialProtocolProtobuf::handlePacket(const uint8_t* buffer, size_t size) {
 void SerialProtocolProtobuf::sendPbTxBuffer() {
     // Encode protobuf message to byte buffer
     pb_ostream_t stream = pb_ostream_from_buffer(tx_buffer_, sizeof(tx_buffer_));
+    pb_tx_buffer_.protocol_version = PROTOBUF_PROTOCOL_VERSION;
     if (!pb_encode(&stream, PB_FromSmartKnob_fields, &pb_tx_buffer_)) {
         stream_.println(stream.errmsg);
         stream_.flush();
