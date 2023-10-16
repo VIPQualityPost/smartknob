@@ -56,7 +56,7 @@ class MotorTask : public Task<MotorTask> {
 
         // BLDC motor & driver instance
         BLDCMotor motor = BLDCMotor(1);
-        BLDCDriver6PWM driver = BLDCDriver6PWM(PIN_UH, PIN_UL, PIN_VH, PIN_VL, PIN_WH, PIN_WL);
+        BLDCDriver3PWM driver = BLDCDriver3PWM(PIN_UPWM, PIN_VPWM, PIN_WPWM, PIN_UEN, PIN_VEN, PIN_WEN);
 
         void publish(const PB_SmartKnobState& state);
         void calibrate();
